@@ -173,8 +173,10 @@ return {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
     dependencies = { 'nvim-lua/plenary.nvim' },
-    init = function()
+    config = function()
       local harpoon = require('harpoon')
+
+      harpoon:setup()
 
       vim.keymap.set('n', '<leader>a', function() harpoon:list():add() end)
       vim.keymap.set('n', '<C-e>', function()
@@ -184,9 +186,19 @@ return {
       vim.keymap.set('n', '<C-2>', function() harpoon:list():select(2) end)
       vim.keymap.set('n', '<C-3>', function() harpoon:list():select(3) end)
       vim.keymap.set('n', '<C-4>', function() harpoon:list():select(4) end)
+      for index = 1, 8 do
+        vim.keymap.set('n', string.format('<leader>%d', index), function()
+          harpoon:list():select(index)
+        end, { desc = string.format('Harpoon to slot %d', index) })
+      end
 
       vim.keymap.set('n', '<leader>fa', function() harpoon:list():prev() end)
       vim.keymap.set('n', '<leader>af', function() harpoon:list():next() end)
+      vim.keymap.set('n', '<leader>ch', function()
+        local list = harpoon:list()
+        list:clear()
+        harpoon:sync()
+      end, { desc = 'Clear Harpoon Marks' })
     end,
   },
 }
