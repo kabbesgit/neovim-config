@@ -9,6 +9,7 @@ vim.fn.mkdir(cache_dir .. '/luac', 'p')
 
 opt.directory = state_dir .. '/swap//'
 opt.undodir = state_dir .. '/undo'
+opt.spellfile = vim.fn.stdpath('config') .. '/spell/en.utf-8.add'
 
 opt.expandtab = true
 opt.tabstop = 2
