@@ -9,7 +9,14 @@ vim.fn.mkdir(cache_dir .. '/luac', 'p')
 
 opt.directory = state_dir .. '/swap//'
 opt.undodir = state_dir .. '/undo'
-opt.spellfile = vim.fn.stdpath('config') .. '/spell/en.utf-8.add'
+local spellfile = vim.fn.stdpath('config') .. '/spell/en.utf-8.add'
+opt.spellfile = spellfile
+opt.spelllang = { 'en' }
+if vim.fn.filereadable(spellfile) == 0 then
+  vim.fn.writefile({}, spellfile)
+end
+local escaped_spellfile = vim.fn.fnameescape(spellfile)
+pcall(vim.cmd, ('silent! mkspell! %s %s'):format(escaped_spellfile, escaped_spellfile))
 
 opt.expandtab = true
 opt.tabstop = 2
