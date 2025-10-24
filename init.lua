@@ -22,6 +22,3 @@ require('lazy').setup('plugins', {
     check_pinned = false, -- check for pinned packages that can't be updated
   },
 })
-require("lazy").setup({
-  {"nvim-treesitter/nvim-treesitter", branch = 'master', lazy = false, build = ":TSUpdate"}
-})

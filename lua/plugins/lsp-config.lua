@@ -21,7 +21,6 @@ return {
     config = function()
       local ok_blink, blink = pcall(require, 'blink.cmp')
       local base_capabilities = ok_blink and blink.get_lsp_capabilities() or nil
-      local lspconfig = require('lspconfig')
 
       local function build_opts(opts)
         opts = opts or {}
@@ -32,12 +31,12 @@ return {
       end
 
       local function configure(server, opts)
-        opts = build_opts(opts)
-        if not lspconfig[server] then
-          vim.notify(string.format('LSP config for %s not found', server), vim.log.levels.WARN)
+        local ok, err = pcall(vim.lsp.config, server, build_opts(opts))
+        if not ok then
+          vim.notify(string.format('Failed to configure %s: %s', server, err), vim.log.levels.ERROR)
           return
         end
-        lspconfig[server].setup(opts)
+        vim.lsp.enable(server)
       end
 
       local util = require('lspconfig.util')
@@ -68,11 +67,8 @@ return {
 
       configure('sourcekit', {
         cmd = { '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp' },
-        root_dir = function(filename, _)
-          local path = filename
-          if type(path) == 'number' then
-            path = vim.api.nvim_buf_get_name(path)
-          end
+        root_dir = function(bufnr, on_dir)
+          local path = vim.api.nvim_buf_get_name(bufnr)
           if not path or path == '' then
             path = vim.api.nvim_buf_get_name(0)
           end
@@ -82,13 +78,13 @@ return {
 
           local git_dir = path and vim.fs.find('.git', { path = path, upward = true })[1] or nil
 
-          local root = util.root_pattern('Package.swift')(path)
-              or util.root_pattern('buildServer.json')(path)
-              or util.root_pattern('*.xcodeproj', '*.xcworkspace')(path)
-              or (git_dir and vim.fs.dirname(git_dir))
-              or vim.uv.cwd()
-
-          return root
+          on_dir(
+            util.root_pattern('Package.swift')(path)
+            or util.root_pattern('buildServer.json')(path)
+            or util.root_pattern('*.xcodeproj', '*.xcworkspace')(path)
+            or (git_dir and vim.fs.dirname(git_dir))
+            or vim.uv.cwd()
+          )
         end,
       })
 
