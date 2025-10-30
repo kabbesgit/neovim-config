@@ -22,11 +22,6 @@ return {
         follow_current_file = { enabled = true },
         use_libuv_file_watcher = true,
       },
-      window = {
-        mappings = {
-          ['<space>'] = 'none',
-        },
-      },
       default_component_configs = {
         indent = {
           with_expanders = true, -- if nil and file nesting is enabled, will enable expanders

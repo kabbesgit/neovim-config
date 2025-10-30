@@ -118,6 +118,12 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   pattern = '*',
 })
 
+if vim.fn.exists(':Messages') == 0 then
+  vim.api.nvim_create_user_command('Messages', function()
+    vim.cmd('messages')
+  end, { desc = 'Show message history' })
+end
+
 -- [[ Unfold on open ]]
 -- Since vim will start with all folds closed we need to open them all when a file is opened
 opt.foldlevel = 20
