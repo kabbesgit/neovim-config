@@ -5,7 +5,21 @@ return {
   -- "gc" to comment visual regions/lines
   {
     'numToStr/Comment.nvim',
-    opts = {},
+    dependencies = {
+      'JoosepAlviste/nvim-ts-context-commentstring',
+    },
+    keys = {
+      { 'gc', mode = { 'n', 'x' }, desc = 'Toggle comment' },
+      { 'gcc', mode = 'n', desc = 'Toggle line comment' },
+      { 'gb', mode = { 'n', 'x' }, desc = 'Toggle block comment' },
+      { 'gbc', mode = 'n', desc = 'Toggle block comment line' },
+    },
+    opts = function()
+      local ok, integration = pcall(require, 'ts_context_commentstring.integrations.comment_nvim')
+      return {
+        pre_hook = ok and integration.create_pre_hook() or nil,
+      }
+    end,
   },
   {
     'github/copilot.vim',
