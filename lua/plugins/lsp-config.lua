@@ -108,7 +108,18 @@ return {
 
           nmap('<leader>cr', vim.lsp.buf.rename, '[C]ode Rename')
           nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode Action')
-          nmap('gd', vim.lsp.buf.definition, 'Goto Definition')
+          local function goto_definition()
+            vim.api.nvim_create_autocmd('CursorMoved', {
+              once = true,
+              callback = function()
+                pcall(vim.cmd, 'normal! zz')
+              end,
+            })
+            vim.lsp.buf.definition()
+          end
+
+          nmap('gd', goto_definition, 'Goto Definition')
+          nmap('<leader>gd', goto_definition, 'Goto Definition')
 
           local function toggle_inlay_hints()
             vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({}))
