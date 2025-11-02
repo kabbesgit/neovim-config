@@ -87,7 +87,7 @@ vim.diagnostic.config({
   -- },
   underline = true,
   float = false,
-  virtual_text = { { current_line = true } },
+  virtual_text = { current_line = true },
 })
 
 -- [[ Basic Keymaps ]]

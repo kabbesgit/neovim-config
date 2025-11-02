@@ -9,22 +9,32 @@ return {
       --   build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build',
       -- },
     },
-    -- config = function()
-    --   local builtin = require('telescope.builtin')
-    --   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles (Root)' })
-    --   vim.keymap.set('n', '<leader>sF', function()
-    --     local package_dir = vim.lsp.get_active_clients()[1].config.root_dir
-    --     builtin.find_files({ cwd = package_dir })
-    --   end, { desc = '[S]earch [F]iles (Package)' })
-    --   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-    --   vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-    --   vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep (Root)' })
-    --   vim.keymap.set('n', '<leader>sG', function()
-    --     local package_dir = vim.lsp.get_active_clients()[1].config.root_dir
-    --     builtin.live_grep({ cwd = package_dir })
-    --   end, { desc = '[S]earch by [G]rep (Package)' })
-    --   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-    -- end,
+    config = function()
+      local builtin = require('telescope.builtin')
+      vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles (Root)' })
+      vim.keymap.set('n', '<leader>sF', function()
+        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+        local first = clients[1]
+        if first and first.config and first.config.root_dir then
+          builtin.find_files({ cwd = first.config.root_dir })
+        else
+          builtin.find_files()
+        end
+      end, { desc = '[S]earch [F]iles (Package)' })
+      vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
+      vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
+      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep (Root)' })
+      vim.keymap.set('n', '<leader>sG', function()
+        local clients = vim.lsp.get_active_clients({ bufnr = 0 })
+        local first = clients[1]
+        if first and first.config and first.config.root_dir then
+          builtin.live_grep({ cwd = first.config.root_dir })
+        else
+          builtin.live_grep()
+        end
+      end, { desc = '[S]earch by [G]rep (Package)' })
+      vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
+    end,
   },
   {
     'nvim-telescope/telescope-ui-select.nvim',

@@ -65,6 +65,21 @@ return {
         },
       })
 
+      local function find_xcode_host_dir(start_path)
+        if not start_path or start_path == '' then
+          return nil
+        end
+
+        local match = vim.fs.find(function(name, path)
+          if name:match('%.xcodeproj$') or name:match('%.xcworkspace$') then
+            return true
+          end
+          return false
+        end, { path = start_path, upward = true, limit = 1 })[1]
+
+        return match and vim.fs.dirname(match) or nil
+      end
+
       configure('sourcekit', {
         cmd = { '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp' },
         root_dir = function(bufnr, on_dir)
@@ -81,7 +96,7 @@ return {
           on_dir(
             util.root_pattern('Package.swift')(path)
             or util.root_pattern('buildServer.json')(path)
-            or util.root_pattern('*.xcodeproj', '*.xcworkspace')(path)
+            or find_xcode_host_dir(path)
             or (git_dir and vim.fs.dirname(git_dir))
             or vim.uv.cwd()
           )
@@ -122,7 +137,8 @@ return {
           nmap('<leader>gd', goto_definition, 'Goto Definition')
 
           local function toggle_inlay_hints()
-            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({}))
+            local enabled = vim.lsp.inlay_hint.is_enabled(bufnr)
+            vim.lsp.inlay_hint.enable(bufnr, not enabled)
           end
           nmap('<leader>cth', toggle_inlay_hints, 'Toggle inlay hints')
         end,
