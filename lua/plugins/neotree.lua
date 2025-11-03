@@ -14,7 +14,7 @@ return {
     local opts = {
       enable_diagnostics = true,
       event_handlers = {
-        { event = events.FILE_MOVED, handler = on_move },
+        { event = events.FILE_MOVED,   handler = on_move },
         { event = events.FILE_RENAMED, handler = on_move },
       },
       filesystem = {
@@ -43,6 +43,11 @@ return {
             error = 'DiagnosticSignError',
           },
         },
+      },
+      window = {
+        width = 48,           -- pick your preferred column width
+        auto_expand_width = false,
+        persist_width = true, -- remember the width between toggles.
       },
     }
     local nt = require('neo-tree')
