@@ -43,6 +43,8 @@ vim.o.mouse = 'a'
 -- Highlight current line
 vim.wo.cursorline = true
 
+opt.scrolloff = 8
+
 -- Sync clipboard between OS and Neovim.
 vim.o.clipboard = 'unnamedplus'
 
