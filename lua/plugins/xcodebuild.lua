@@ -1,83 +1,4 @@
-local uv = vim.uv or vim.loop
-
-local function normalize(path)
-  if not path or path == '' then
-    return nil
-  end
-  return vim.fs and vim.fs.normalize(path) or vim.fn.fnamemodify(path, ':p')
-end
-
-local function exists(path)
-  local resolved = normalize(path)
-  return resolved and uv.fs_stat(resolved) ~= nil
-end
-
-local function collect_glob(pattern)
-  if not pattern or pattern == '' then
-    return {}
-  end
-  local ok, result = pcall(vim.fn.glob, pattern, false, true)
-  if not ok then
-    return {}
-  end
-  if type(result) == 'table' then
-    return result
-  end
-  if type(result) == 'string' and result ~= '' then
-    return { result }
-  end
-  return {}
-end
-
-local function find_codelldb()
-  local candidates = {}
-
-  local function add(path)
-    if path and path ~= '' then
-      table.insert(candidates, vim.fn.expand(path))
-    end
-  end
-
-  add(vim.g.xcodebuild_codelldb_path)
-  add(os.getenv('CODELLDB_PATH'))
-
-  local mason_base = vim.fn.stdpath('data') .. '/mason'
-  add(mason_base .. '/bin/codelldb')
-  add(mason_base .. '/packages/codelldb/extension/adapter/codelldb')
-
-  for _, path in ipairs(collect_glob(vim.fn.expand('~/.vscode/extensions/vadimcn.vscode-lldb-*/adapter/codelldb'))) do
-    add(path)
-  end
-
-  local code_insiders = vim.fn.expand('~/Library/Application Support/Code - Insiders/User/globalStorage/vadimcn.vscode-lldb/adapter/codelldb')
-  add(code_insiders)
-  add(vim.fn.expand('~/Library/Application Support/Code/User/globalStorage/vadimcn.vscode-lldb/adapter/codelldb'))
-
-  for _, candidate in ipairs(candidates) do
-    if exists(candidate) then
-      return normalize(candidate)
-    end
-  end
-
-  return nil
-end
-
-local function find_lldb()
-  local candidates = {
-    vim.g.xcodebuild_lldb_library,
-    os.getenv('LLDB_LIBRARY_PATH'),
-    '/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB',
-    '/Applications/Xcode-beta.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB',
-  }
-
-  for _, candidate in ipairs(candidates) do
-    if exists(candidate) then
-      return normalize(candidate)
-    end
-  end
-
-  return nil
-end
+local codelldb = require('swifty.codelldb')
 
 return {
   'wojciech-kulik/xcodebuild.nvim',
@@ -94,12 +15,12 @@ return {
       },
     }
 
-    local codelldb_path = find_codelldb()
+    local codelldb_path = codelldb.find_codelldb()
     if codelldb_path then
       integrations.codelldb = {
         enabled = true,
         codelldb_path = codelldb_path,
-        lldb_lib_path = find_lldb(),
+        lldb_lib_path = codelldb.find_lldb(),
       }
     elseif vim.g.xcodebuild_codelldb_path or os.getenv('CODELLDB_PATH') then
       vim.notify(

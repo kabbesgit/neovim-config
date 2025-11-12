@@ -1,3 +1,5 @@
+local codelldb = require('swifty.codelldb')
+
 return {
   "mfussenegger/nvim-dap",
   dependencies = {
@@ -10,7 +12,21 @@ return {
       return
     end
 
-    xcodebuild.setup()
+    local ok_setup, err = pcall(xcodebuild.setup)
+    if not ok_setup then
+      vim.notify(string.format('xcodebuild.nvim: failed to configure debugger (%s)', err), vim.log.levels.ERROR)
+      return
+    end
+
+    local codelldb_path = codelldb.find_codelldb()
+    if codelldb_path then
+      local lldb_path = codelldb.find_lldb()
+      local dap = require('dap')
+      dap.adapters.codelldb = function(callback)
+        local port = codelldb.pick_free_port()
+        callback(codelldb.build_adapter(codelldb_path, lldb_path, port))
+      end
+    end
 
     vim.keymap.set('n', '<leader>dd', xcodebuild.build_and_debug, { desc = 'Build & Debug' })
     vim.keymap.set('n', '<leader>dg', xcodebuild.debug_without_build, { desc = 'Debug Without Building' })
