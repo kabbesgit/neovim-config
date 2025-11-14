@@ -40,6 +40,46 @@ return {
       end
 
       local util = require('lspconfig.util')
+      local ms = vim.lsp.protocol.Methods
+
+      local function ensure_sourcekit_capabilities(client)
+        if not client or client.name ~= 'sourcekit' then
+          return
+        end
+        local caps = client.server_capabilities or {}
+        caps.definitionProvider = true
+        caps.referencesProvider = true
+        caps.implementationProvider = true
+        caps.typeDefinitionProvider = true
+        caps.documentSymbolProvider = true
+        caps.workspaceSymbolProvider = true
+        caps.callHierarchyProvider = true
+        caps.documentHighlightProvider = true
+        caps.declarationProvider = true
+        caps.linkedEditingRangeProvider = true
+        client.server_capabilities = caps
+
+        if not client._swifty_supports_method_wrapped then
+          local forced = {
+            [ms.textDocument_definition] = true,
+            [ms.textDocument_references] = true,
+            [ms.textDocument_implementation] = true,
+            [ms.textDocument_typeDefinition] = true,
+            [ms.textDocument_documentSymbol] = true,
+            [ms.workspace_symbol] = true,
+            [ms.textDocument_documentHighlight] = true,
+            [ms.textDocument_declaration] = true,
+          }
+          local original = client.supports_method
+          client.supports_method = function(self, method, ...)
+            if forced[method] then
+              return true
+            end
+            return original(self, method, ...)
+          end
+          client._swifty_supports_method_wrapped = true
+        end
+      end
 
       configure('lua_ls', {
         settings = {
@@ -82,25 +122,43 @@ return {
 
       configure('sourcekit', {
         cmd = { '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp' },
+        filetypes = { 'swift', 'objc', 'objcpp' },
         root_dir = function(bufnr, on_dir)
-          local path = vim.api.nvim_buf_get_name(bufnr)
+          local path = bufnr
+          if type(path) == 'number' then
+            path = vim.api.nvim_buf_get_name(path)
+          end
           if not path or path == '' then
             path = vim.api.nvim_buf_get_name(0)
           end
-          if path and path ~= '' then
-            path = vim.fs.normalize(path)
+          if not path or path == '' then
+            on_dir(vim.uv.cwd())
+            return
           end
 
-          local git_dir = path and vim.fs.find('.git', { path = path, upward = true })[1] or nil
-
-          on_dir(
-            util.root_pattern('Package.swift')(path)
-            or util.root_pattern('buildServer.json')(path)
+          path = vim.fs.normalize(path)
+          local root = util.root_pattern('Package.swift', 'buildServer.json')(path)
             or find_xcode_host_dir(path)
-            or (git_dir and vim.fs.dirname(git_dir))
-            or vim.uv.cwd()
-          )
+
+          if not root then
+            local git_match = vim.fs.find('.git', { path = path, upward = true, limit = 1 })[1]
+            if git_match then
+              root = vim.fs.dirname(git_match)
+            end
+          end
+
+          if not root or not vim.loop.fs_stat(root) then
+            local parent = vim.fs.dirname(path)
+            if parent and parent ~= '' and vim.loop.fs_stat(parent) then
+              root = parent
+            else
+              root = vim.uv.cwd()
+            end
+          end
+
+          on_dir(root)
         end,
+        on_attach = ensure_sourcekit_capabilities,
       })
 
       configure('biome')
@@ -112,6 +170,8 @@ return {
         group = vim.api.nvim_create_augroup('UserLspConfig', {}),
         callback = function(ev)
           local bufnr = ev.buf
+          local client = vim.lsp.get_client_by_id(ev.data.client_id)
+          ensure_sourcekit_capabilities(client)
 
           local nmap = function(keys, func, desc)
             if desc then

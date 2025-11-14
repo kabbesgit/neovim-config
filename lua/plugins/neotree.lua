@@ -7,6 +7,20 @@ return {
     'MunifTanjim/nui.nvim',
   },
   config = function()
+    local function get_safe_dir()
+      local dir = vim.loop.cwd()
+      if dir and dir ~= '' and vim.loop.fs_stat(dir) then
+        return dir
+      end
+
+      local ok, fallback = pcall(vim.fn.getcwd)
+      if ok and fallback ~= '' and vim.loop.fs_stat(fallback) then
+        return fallback
+      end
+
+      return vim.loop.os_homedir()
+    end
+
     local function on_move(data)
       Snacks.rename.on_rename_file(data.source, data.destination)
     end
@@ -63,7 +77,7 @@ return {
 
     -- Toggle file browser
     vim.keymap.set('n', '<leader>e', function()
-      require('neo-tree.command').execute({ toggle = true, dir = vim.loop.cwd() })
+      require('neo-tree.command').execute({ toggle = true, dir = get_safe_dir() })
     end, { desc = 'Toggle file explorer' })
   end,
 }
