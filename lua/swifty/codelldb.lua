@@ -61,7 +61,8 @@ function M.find_codelldb()
     add(path)
   end
 
-  local code_insiders = vim.fn.expand('~/Library/Application Support/Code - Insiders/User/globalStorage/vadimcn.vscode-lldb/adapter/codelldb')
+  local code_insiders = vim.fn.expand(
+  '~/Library/Application Support/Code - Insiders/User/globalStorage/vadimcn.vscode-lldb/adapter/codelldb')
   add(code_insiders)
   add(vim.fn.expand('~/Library/Application Support/Code/User/globalStorage/vadimcn.vscode-lldb/adapter/codelldb'))
 
@@ -80,7 +81,7 @@ function M.find_lldb()
     os.getenv('LLDB_LIBRARY_PATH'),
     '/Library/Developer/CommandLineTools/Library/PrivateFrameworks/LLDB.framework/Versions/A/LLDB',
     DEFAULT_LLDB,
-    '/Applications/Xcode-beta.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB',
+    '/Applications/Xcode.app/Contents/SharedFrameworks/LLDB.framework/Versions/A/LLDB',
   }
 
   for _, candidate in ipairs(candidates) do

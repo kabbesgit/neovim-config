@@ -179,9 +179,21 @@ return {
         end,
       })
 
-      vim.keymap.set('n', '<leader>l', function()
-        require('lint').try_lint()
-      end, { desc = 'Lint file' })
+      local function map_lint_key()
+        vim.keymap.set('n', '<leader>l', function()
+          require('lint').try_lint()
+        end, { desc = 'Lint file' })
+      end
+
+      map_lint_key()
+
+      -- Re-apply the mapping once all lazy-loaded plugins have initialized so
+      -- other distributions (e.g. LazyVim) can't clobber it.
+      vim.api.nvim_create_autocmd('User', {
+        pattern = 'VeryLazy',
+        once = true,
+        callback = map_lint_key,
+      })
     end,
   },
   {

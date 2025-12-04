@@ -33,6 +33,18 @@ vim.g.maplocalleader = ' '
 
 vim.o.termguicolors = true
 
+-- Explicit cursor highlight groups so colorschemes can override them
+opt.guicursor = table.concat({
+  'n-v-c:block-Cursor/lCursor',
+  'sm:block-Cursor/lCursor',
+  'i-ci:ver25-Cursor/lCursor',
+  've:ver35-Cursor/lCursor',
+  'r-cr:hor20-Cursor/lCursor',
+  'o:hor50-Cursor/lCursor',
+  't:block-TermCursor/TermCursor',
+  'a:blinkwait700-blinkoff400-blinkon250',
+}, ',')
+
 -- Make line numbers default
 vim.wo.number = true
 vim.wo.relativenumber = true
@@ -98,6 +110,11 @@ vim.diagnostic.config({
 -- See `:help vim.keymap.set()`
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 
+-- Remap for moving blocks.
+vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
+--
 -- Remap for dealing with word wrap
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
