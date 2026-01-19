@@ -94,7 +94,12 @@ return {
 
     map('<leader>dv', function()
       lazy_load('nvim-dap', 'nvim-dap-ui', 'nvim-dap-virtual-text')
-      vim.cmd('DapVirtualTextToggle')
+      local ok, dapvt = pcall(require, 'nvim-dap-virtual-text')
+      if not ok then
+        vim.notify('nvim-dap-virtual-text is not available', vim.log.levels.ERROR)
+        return
+      end
+      dapvt.toggle()
     end, 'Toggle DAP virtual text')
 
     map('<F5>', with_dap(function(dap)
